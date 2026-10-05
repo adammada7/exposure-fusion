@@ -2,12 +2,16 @@ import cv2
 import numpy as np
 
 def gaussian_pyramid(img, levels):
+    """Réalise une pyramide gaussienne de l'image img 
+    sur le nombre de niveaux levels"""
     G = [img]                          # niveau 0 = image d'origine
     for i in range(levels - 1):
         G.append(cv2.pyrDown(G[-1]))   # on réduit le dernier niveau obtenu
     return G
 
 def laplacian_pyramid(img, levels):
+    """Réalise une pyramide laplacienne de l'image img 
+    sur le nombre de niveaux levels"""
     G = gaussian_pyramid(img.astype(np.float32), levels)   # float32 obligatoire
     L = []
     for i in range(levels - 1):
@@ -42,6 +46,7 @@ for i, l in enumerate(L):
 cv2.waitKey(0)
 """
 def collapse(L):
+    """Reconstruit l'image à partir de sa pyramide laplacienne L"""
     img = L[-1]                                          # on part du résidu
     for lvl in reversed(L[:-1]):                         # du plus petit au plus grand
         taille = (lvl.shape[1], lvl.shape[0])
