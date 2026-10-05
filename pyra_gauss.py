@@ -2,12 +2,16 @@ import cv2
 import numpy as np
 
 def gaussian_pyramid(img, levels):
+    """Réalise une pyramide gaussienne de l'image img 
+    sur le nombre de niveaux levels"""
     G = [img]                          # niveau 0 = image d'origine
     for i in range(levels - 1):
         G.append(cv2.pyrDown(G[-1]))   # on réduit le dernier niveau obtenu
     return G
 
 def laplacian_pyramid(img, levels):
+    """Réalise une pyramide laplacienne de l'image img 
+    sur le nombre de niveaux levels"""
     G = gaussian_pyramid(img.astype(np.float32), levels)   # float32 obligatoire
     L = []
     for i in range(levels - 1):
@@ -18,6 +22,9 @@ def laplacian_pyramid(img, levels):
     return L
 
 img = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
+
+#%% Test 1: Affichage des pyramides gaussienne et laplacienne
+
 """
 G = gaussian_pyramid(img, 4)
 
@@ -41,12 +48,17 @@ for i, l in enumerate(L):
     cv2.imshow(f"laplace {i}", affichage)
 cv2.waitKey(0)
 """
+
 def collapse(L):
+    """Reconstruit l'image à partir de sa pyramide laplacienne L"""
     img = L[-1]                                          # on part du résidu
     for lvl in reversed(L[:-1]):                         # du plus petit au plus grand
         taille = (lvl.shape[1], lvl.shape[0])
         img = cv2.pyrUp(img, dstsize=taille) + lvl       # on réagrandit puis on rajoute les détails
     return img
+
+#%% Test 2: Reconstruction de l'image à partir de sa pyramide laplacienne
+
 """
 L = laplacian_pyramid(img, 4)
 
@@ -58,6 +70,7 @@ cv2.resizeWindow("reconstruction", 700, 500)
 cv2.imshow("reconstruction", np.clip(rec, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
 """
+#%% Test 3: Fusion d'images par méthode naive
 
 #a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
 
@@ -73,6 +86,7 @@ def pyramid_blend(A, B, mask, levels):
 
     return collapse(L_R)                    # on reconstruit l'image
 
+"""
 A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
 B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
 B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
@@ -97,6 +111,7 @@ def contrast(img):
     lap = cv2.Laplacian(gris, cv2.CV_32F)      # CV_32F pour garder les valeurs négatives
     return np.abs(lap)
 
+"""
 img = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)/255.0
 C = contrast(img)
 print("forme :", C.shape, " min :", C.min(), " max :", C.max())
@@ -106,3 +121,4 @@ cv2.namedWindow("contraste", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("contraste", 800, 550)
 cv2.imshow("contraste", affichage)
 cv2.waitKey(0)
+"""
