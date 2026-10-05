@@ -60,7 +60,7 @@ cv2.waitKey(0)
 """
 
 #a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
-"""
+
 def pyramid_blend(A, B, mask, levels):
     LA = laplacian_pyramid(A, levels)                       # détails de A, niveau par niveau
     LB = laplacian_pyramid(B, levels)                       # détails de B
@@ -82,14 +82,14 @@ mask = np.zeros(A.shape[:2], np.float32)
 mask[:, A.shape[1] // 2:] = 1.0
 
 naif = mask[..., None] * B + (1 - mask[..., None]) * A
-multi = pyramid_blend(A, B, mask, levels=20)
+multi = pyramid_blend(A, B, mask, levels=5)
 
 for nom, im in [("naif", naif), ("pyramide", multi)]:
     cv2.namedWindow(nom, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(nom, 800, 550)
     cv2.imshow(nom, np.clip(im, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
-"""
+
 # Premier critere de choix le contraste
 
 def contrast(img):
