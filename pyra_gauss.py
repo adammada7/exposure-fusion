@@ -113,10 +113,11 @@ A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
 B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
 B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
 fusion_naive = naive_fusion(A, B)
-cv2.namedWindow("fusion_naive", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("fusion_naive", 800, 550)
-cv2.imshow("fusion_naive", np.clip(fusion_naive, 0, 255).astype(np.uint8))
-cv2.waitKey(0)
+for im in [A, B, fusion_naive]:
+    cv2.namedWindow("fusion_naive", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("fusion_naive", 800, 550)
+    cv2.imshow("fusion_naive", np.clip(im, 0, 255).astype(np.uint8))
+    cv2.waitKey(0)
 
 
 
