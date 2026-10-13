@@ -72,6 +72,30 @@ cv2.waitKey(0)
 """
 #%% Test 3: Fusion d'images par méthode naive
 
+def contrast(img):
+    """Retourne une image du contraste de img"""
+    gris = cv2.cvtColor(img.astype(np.float32), cv2.COLOR_BGR2GRAY)
+    lap = cv2.Laplacian(gris, cv2.CV_32F)      # CV_32F pour garder les valeurs négatives
+    return np.abs(lap)
+
+def saturation(img):
+    """Retourne une image de la saturation de img"""
+    return np.std(img, axis=2)  # écart-type sur les 3 canaux
+
+def well_exposedness(img, sigma=0.2):
+    """Retourne une image de l'exposition de img"""
+    img_norm = img / 255.0  # normalisation sur [0,1]
+    gauss = np.exp(((img_norm - 0.5) ** 2) / (2 * (sigma ** 2)))
+    return np.prod(gauss, axis=2)  # produit sur les 3 canaux
+
+def weight_map(img, sc=1/3, ss=1/3, se=1/3):
+    """Retourne une carte de poids pour l'image img"""
+    c = contrast(img)
+    s = saturation(img)
+    e = well_exposedness(img)
+    w = (c**sc) * (s**ss) * (e**se)
+    return w / (np.sum(w) + 1e-12)  # normalisation pour que la somme fasse 1
+
 #a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
 
 def pyramid_blend(A, B, mask, levels):
