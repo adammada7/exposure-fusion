@@ -70,7 +70,7 @@ cv2.resizeWindow("reconstruction", 700, 500)
 cv2.imshow("reconstruction", np.clip(rec, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
 """
-#%% Test 3: Fusion d'images par méthode naive
+#%% Fonctions pour le calcul des cartes de poids
 
 def contrast(img):
     """Retourne une image du contraste de img"""
@@ -94,10 +94,34 @@ def weight_map(img, sc=1/3, ss=1/3, se=1/3):
     s = saturation(img)
     e = well_exposedness(img)
     w = (c**sc) * (s**ss) * (e**se)
-    return w / (np.sum(w) + 1e-12)  # normalisation pour que la somme fasse 1
+    return w
+
+#%% Test 3: Fusion d'images par méthode naive
+
+def naive_fusion(A, B):
+    """Fusionne les images A et B par méthode naïve"""
+    WA = weight_map(A)
+    WB = weight_map(B)
+    W = WA + WB
+    WA_norm = WA / W
+    WB_norm = WB / W
+    fusion = WA_norm[..., None] * A + WB_norm[..., None] * B
+    return fusion
+
+
+A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
+B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
+B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
+fusion_naive = naive_fusion(A, B)
+cv2.namedWindow("fusion_naive", cv2.WINDOW_NORMAL)
+cv2.resizeWindow("fusion_naive", 800, 550)
+cv2.imshow("fusion_naive", np.clip(fusion_naive, 0, 255).astype(np.uint8))
+cv2.waitKey(0)
+
+
 
 #a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
-
+"""
 def pyramid_blend(A, B, mask, levels):
     LA = laplacian_pyramid(A, levels)                       # détails de A, niveau par niveau
     LB = laplacian_pyramid(B, levels)                       # détails de B
@@ -126,6 +150,7 @@ for nom, im in [("naif", naif), ("pyramide", multi)]:
     cv2.resizeWindow(nom, 800, 550)
     cv2.imshow(nom, np.clip(im, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
+"""
 
 # Premier critere de choix le contraste
 """
