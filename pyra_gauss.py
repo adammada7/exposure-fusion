@@ -100,20 +100,32 @@ def weight_map(img, sc=1/3, ss=1/3, se=1/3):
 
 def naive_fusion(A, B):
     """Fusionne les images A et B par méthode naïve"""
-    WA = weight_map(A)
-    WB = weight_map(B)
+    WA = weight_map(A)+ 1e-12
+    WB = weight_map(B)+ 1e-12
     W = WA + WB
     WA_norm = WA / W
     WB_norm = WB / W
     fusion = WA_norm[..., None] * A + WB_norm[..., None] * B
     return fusion
 
+def fusion_pyramide(A, B, niveaux=7):
+    WA = weight_map(A) + 1e-12
+    WB = weight_map(B) + 1e-12
+    W = WA + WB
+    WA, WB = WA / W, WB / W
+    LA, LB = laplacian_pyramid(A, niveaux), laplacian_pyramid(B, niveaux)
+    GA = gaussian_pyramid(WA.astype(np.float32), niveaux)
+    GB = gaussian_pyramid(WB.astype(np.float32), niveaux)
+    LR = [ga[..., None] * la + gb[..., None] * lb for la, lb, ga, gb in zip(LA, LB, GA, GB)]
+    return collapse(LR)
+
 
 A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
 B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
 B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
 fusion_naive = naive_fusion(A, B)
-for im in [A, B, fusion_naive]:
+fusion_pyr=fusion_pyramide(A,B,niveaux=7)
+for im in [A, B, fusion_naive,fusion_pyr]:
     cv2.namedWindow("fusion_naive", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("fusion_naive", 800, 550)
     cv2.imshow("fusion_naive", np.clip(im, 0, 255).astype(np.uint8))
