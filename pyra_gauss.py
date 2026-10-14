@@ -70,10 +70,59 @@ cv2.resizeWindow("reconstruction", 700, 500)
 cv2.imshow("reconstruction", np.clip(rec, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
 """
+#%% Fonctions pour le calcul des cartes de poids
+
+def contrast(img):
+    """Retourne une image du contraste de img"""
+    gris = cv2.cvtColor(img.astype(np.float32), cv2.COLOR_BGR2GRAY)
+    lap = cv2.Laplacian(gris, cv2.CV_32F)      # CV_32F pour garder les valeurs négatives
+    return np.abs(lap)
+
+def saturation(img):
+    """Retourne une image de la saturation de img"""
+    return np.std(img, axis=2)  # écart-type sur les 3 canaux
+
+def well_exposedness(img, sigma=0.2):
+    """Retourne une image de l'exposition de img"""
+    img_norm = img / 255.0  # normalisation sur [0,1]
+    gauss = np.exp(((img_norm - 0.5) ** 2) / (2 * (sigma ** 2)))
+    return np.prod(gauss, axis=2)  # produit sur les 3 canaux
+
+def weight_map(img, sc=1/3, ss=1/3, se=1/3):
+    """Retourne une carte de poids pour l'image img"""
+    c = contrast(img)
+    s = saturation(img)
+    e = well_exposedness(img)
+    w = (c**sc) * (s**ss) * (e**se)
+    return w
+
 #%% Test 3: Fusion d'images par méthode naive
 
-#a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
+def naive_fusion(A, B):
+    """Fusionne les images A et B par méthode naïve"""
+    WA = weight_map(A)
+    WB = weight_map(B)
+    W = WA + WB
+    WA_norm = WA / W
+    WB_norm = WB / W
+    fusion = WA_norm[..., None] * A + WB_norm[..., None] * B
+    return fusion
 
+
+A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
+B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
+B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
+fusion_naive = naive_fusion(A, B)
+for im in [A, B, fusion_naive]:
+    cv2.namedWindow("fusion_naive", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("fusion_naive", 800, 550)
+    cv2.imshow("fusion_naive", np.clip(im, 0, 255).astype(np.uint8))
+    cv2.waitKey(0)
+
+
+
+#a partir d'ici fusion d'image d'abord par méthode naive puis on essaie de quantifier le contraste
+"""
 def pyramid_blend(A, B, mask, levels):
     LA = laplacian_pyramid(A, levels)                       # détails de A, niveau par niveau
     LB = laplacian_pyramid(B, levels)                       # détails de B
@@ -86,7 +135,6 @@ def pyramid_blend(A, B, mask, levels):
 
     return collapse(L_R)                    # on reconstruit l'image
 
-
 A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
 B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
 B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
@@ -96,13 +144,14 @@ mask = np.zeros(A.shape[:2], np.float32)
 mask[:, A.shape[1] // 2:] = 1.0
 
 naif = mask[..., None] * B + (1 - mask[..., None]) * A
-multi = pyramid_blend(A, B, mask, levels=5)
+multi = pyramid_blend(A, B, mask, levels=20)
 
 for nom, im in [("naif", naif), ("pyramide", multi)]:
     cv2.namedWindow(nom, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(nom, 800, 550)
     cv2.imshow(nom, np.clip(im, 0, 255).astype(np.uint8))
 cv2.waitKey(0)
+"""
 
 # Premier critere de choix le contraste
 """
@@ -110,7 +159,6 @@ def contrast(img):
     gris = cv2.cvtColor(img.astype(np.float32), cv2.COLOR_BGR2GRAY)
     lap = cv2.Laplacian(gris, cv2.CV_32F)      # CV_32F pour garder les valeurs négatives
     return np.abs(lap)
-
 
 img = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)/255.0
 C = contrast(img)
@@ -121,4 +169,5 @@ cv2.namedWindow("contraste", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("contraste", 800, 550)
 cv2.imshow("contraste", affichage)
 cv2.waitKey(0)
+
 """
