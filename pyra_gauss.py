@@ -86,7 +86,7 @@ def pyramid_blend(A, B, mask, levels):
 
     return collapse(L_R)                    # on reconstruit l'image
 
-"""
+
 A = cv2.imread("Cinque-Terre-Manarola/Manarola_under.jpg").astype(np.float32)
 B = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)
 B = cv2.resize(B, (A.shape[1], A.shape[0]))     # même taille obligatoire
@@ -105,13 +105,13 @@ for nom, im in [("naif", naif), ("pyramide", multi)]:
 cv2.waitKey(0)
 
 # Premier critere de choix le contraste
-
+"""
 def contrast(img):
     gris = cv2.cvtColor(img.astype(np.float32), cv2.COLOR_BGR2GRAY)
     lap = cv2.Laplacian(gris, cv2.CV_32F)      # CV_32F pour garder les valeurs négatives
     return np.abs(lap)
 
-"""
+
 img = cv2.imread("Cinque-Terre-Manarola/Manarola_over.jpg").astype(np.float32)/255.0
 C = contrast(img)
 print("forme :", C.shape, " min :", C.min(), " max :", C.max())
