@@ -4,7 +4,6 @@ Implementation from scratch of **Exposure Fusion** (Mertens, Kautz & Van Reeth, 
 
 Course project, 4IM01 Image Processing, Télécom Paris. Authors: Adam Safieddine and Victor Coulet.
 
-![Under-exposed, normal, over-exposed and fused image of Manarola](docs/manarola_fusion.jpg)
 
 ## How it works
 
